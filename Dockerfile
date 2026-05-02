@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
-# ── Base: matches upstream python:3.10.12-slim-buster exactly ─────────────────
-FROM python:3.10.12-slim-buster
+# ── Base: Python 3.10 on Debian Bookworm (slim-buster is EOL since June 2024) ──
+# Upstream used python:3.10.12-slim-buster but its apt repos are no longer
+# reachable. python:3.10-slim resolves to Bookworm and keeps Python 3.10.
+FROM python:3.10-slim
 
 # ── system deps ────────────────────────────────────────────────────────────────
 # coreutils        – upstream requires timeout(1)
