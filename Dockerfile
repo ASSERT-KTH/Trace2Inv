@@ -25,7 +25,7 @@ WORKDIR /Trace2Inv
 COPY . /Trace2Inv/
 
 # ── Python deps (exact versions from upstream requirements.txt) ────────────────
-RUN pip install --upgrade pip \
+RUN pip install --no-cache-dir --upgrade pip \
     && python3.10 -m pip install --no-cache-dir -r requirements.txt
 
 # ── solc-select: Solidity versions used by the benchmark contracts ─────────────
