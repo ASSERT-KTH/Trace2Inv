@@ -36,12 +36,15 @@ RUN pip install --no-cache-dir solc-select \
     && solc-select install 0.5.17 \
     && solc-select install 0.5.18 \
     && solc-select install 0.8.4 \
-    && solc-select use 0.8.4 \
-    && pip install --no-cache-dir "vyper==0.2.8" || true
+    && solc-select use 0.8.4
+
+# Vyper 0.2.8 – BeanstalkFarms; best-effort, not critical if unavailable
+RUN pip install --no-cache-dir "vyper==0.2.8"
 
 # ── offline smoke test ─────────────────────────────────────────────────────────
 # Verifies only the packages actually listed in requirements.txt are importable.
 # web3 is not a direct dependency – it arrives transitively via slither_analyzer.
+# hadolint ignore=SC2015
 RUN python3.10 -c "\
 import sys, importlib.util; \
 pkgs = ['eth_abi', 'hexbytes', 'networkx', 'numpy', 'packaging', \
