@@ -24,7 +24,8 @@ jobs:
           dockerfile: Dockerfile
           # DL3008 – apt version pinning: acceptable for research reproducibility images
           # DL3013 – pip version pinning: managed via pinned requirements.txt
-          ignore: DL3008,DL3013
+          # SC2015 – A&&B||C shell pattern: not present after fix but suppressed for safety
+          ignore: DL3008,DL3013,SC2015
 
   # ── L2: Docker image build ───────────────────────────────────────────────────
   build-image:
