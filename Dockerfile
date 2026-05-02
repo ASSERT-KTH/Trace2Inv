@@ -3,16 +3,15 @@
 FROM python:3.10.12-slim-buster
 
 # ── system deps ────────────────────────────────────────────────────────────────
-# coreutils  – upstream requires timeout(1)
-# git        – crytic-compile/slither resolves contract imports via git
-# curl/wget  – solc-select downloads compiler binaries at runtime
+# coreutils        – upstream requires timeout(1)
+# git              – crytic-compile/slither resolves contract imports via git
+# curl             – solc-select downloads compiler binaries
 # build-essential + libssl-dev + libffi-dev – native C wheels (cytoolz, etc.)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         coreutils \
         git \
         curl \
-        wget \
         build-essential \
         libssl-dev \
         libffi-dev \
@@ -24,9 +23,9 @@ WORKDIR /Trace2Inv
 # ── copy source (mirrors upstream: COPY . /Trace2Inv/) ────────────────────────
 COPY . /Trace2Inv/
 
-# ── Python deps + solc-select + Vyper (all consolidated into one RUN) ──────────
-# solc versions: 0.5.17/0.5.18 – lending contracts; 0.8.4 – newer contracts
-# Vyper 0.2.8 – BeanstalkFarms benchmark
+# ── Python deps + solc-select + Vyper (consolidated) ──────────────────────────
+# solc 0.5.17/0.5.18 – lending contracts; 0.8.4 – newer contracts
+# Vyper 0.2.8        – BeanstalkFarms benchmark
 RUN pip install --no-cache-dir --upgrade pip \
     && python3.10 -m pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir solc-select \
