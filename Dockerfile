@@ -24,26 +24,21 @@ WORKDIR /Trace2Inv
 # ── copy source (mirrors upstream: COPY . /Trace2Inv/) ────────────────────────
 COPY . /Trace2Inv/
 
-# ── Python deps (exact versions from upstream requirements.txt) ────────────────
+# ── Python deps + solc-select + Vyper (all consolidated into one RUN) ──────────
+# solc versions: 0.5.17/0.5.18 – lending contracts; 0.8.4 – newer contracts
+# Vyper 0.2.8 – BeanstalkFarms benchmark
 RUN pip install --no-cache-dir --upgrade pip \
-    && python3.10 -m pip install --no-cache-dir -r requirements.txt
-
-# ── solc-select: Solidity versions used by the benchmark contracts ─────────────
-# 0.5.17 / 0.5.18 – Harvest, CreamFi, Warp, RariCapital, most lending contracts
-# 0.8.4           – newer contracts in the dataset
-# Vyper 0.2.8     – BeanstalkFarms (one benchmark is written in Vyper)
-RUN pip install --no-cache-dir solc-select \
+    && python3.10 -m pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir solc-select \
     && solc-select install 0.5.17 \
     && solc-select install 0.5.18 \
     && solc-select install 0.8.4 \
-    && solc-select use 0.8.4
-
-# Vyper 0.2.8 – BeanstalkFarms; best-effort, not critical if unavailable
-RUN pip install --no-cache-dir "vyper==0.2.8"
+    && solc-select use 0.8.4 \
+    && pip install --no-cache-dir "vyper==0.2.8"
 
 # ── offline smoke test ─────────────────────────────────────────────────────────
 # Verifies only the packages actually listed in requirements.txt are importable.
-# web3 is not a direct dependency – it arrives transitively via slither_analyzer.
+# web3 is not a direct dep – it arrives transitively via slither_analyzer.
 # hadolint ignore=SC2015
 RUN python3.10 -c "\
 import sys, importlib.util; \
