@@ -9,7 +9,7 @@ FROM python:3.10-slim
 # ── system deps ────────────────────────────────────────────────────────────────
 # coreutils        – upstream requires timeout(1)
 # git              – crytic-compile/slither resolves contract imports via git
-# curl             – solc-select downloads compiler binaries
+# curl             – solc-select downloads compiler binaries on demand
 # build-essential + libssl-dev + libffi-dev – native C wheels (cytoolz, etc.)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -27,18 +27,14 @@ WORKDIR /Trace2Inv
 # ── copy source (mirrors upstream: COPY . /Trace2Inv/) ────────────────────────
 COPY . /Trace2Inv/
 
-# ── Python deps + solc-select (consolidated) ──────────────────────────────────
-# solc 0.5.17/0.5.18 – lending contracts; 0.8.4 – newer contracts
-# Note: vyper==0.2.8 is omitted – it only supports Python 3.6-3.8 and is
-# incompatible with Python 3.10. BeanstalkFarms traces are pre-cached in the
-# upstream Docker image so Vyper is not needed to reproduce results.
+# ── Python deps + solc-select (tool only, no pre-download of compiler binaries)─
+# solc-select is installed so Slither can invoke the correct solc version
+# on demand at runtime. Pre-downloading binaries fails in CI because solc
+# 0.5.x prebuilt binaries are not available for linux/amd64 on Bookworm.
+# Note: vyper==0.2.8 is omitted – requires Python ≤3.8, incompatible with 3.10.
 RUN pip install --no-cache-dir --upgrade pip \
     && python3.10 -m pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir solc-select \
-    && solc-select install 0.5.17 \
-    && solc-select install 0.5.18 \
-    && solc-select install 0.8.4 \
-    && solc-select use 0.8.4
+    && pip install --no-cache-dir solc-select
 
 # ── offline smoke test ─────────────────────────────────────────────────────────
 # Verifies only the packages actually listed in requirements.txt are importable.
