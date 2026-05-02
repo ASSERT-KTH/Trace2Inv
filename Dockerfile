@@ -1,7 +1,9 @@
+
 # syntax=docker/dockerfile:1
-# ── Base: Python 3.10 on Debian Bookworm (slim-buster is EOL since June 2024) ──
-# Upstream used python:3.10.12-slim-buster but its apt repos are no longer
-# reachable. python:3.10-slim resolves to Bookworm and keeps Python 3.10.
+# ── Base: Python 3.10 on Debian Bookworm ──────────────────────────────────────
+# Upstream used python:3.10.12-slim-buster but Debian Buster is EOL (June 2024)
+# and its apt repos are no longer reachable. python:3.10-slim (Bookworm) keeps
+# Python 3.10 with a maintained OS. This is a known reproducibility barrier.
 FROM python:3.10-slim
 
 # ── system deps ────────────────────────────────────────────────────────────────
@@ -25,17 +27,18 @@ WORKDIR /Trace2Inv
 # ── copy source (mirrors upstream: COPY . /Trace2Inv/) ────────────────────────
 COPY . /Trace2Inv/
 
-# ── Python deps + solc-select + Vyper (consolidated) ──────────────────────────
+# ── Python deps + solc-select (consolidated) ──────────────────────────────────
 # solc 0.5.17/0.5.18 – lending contracts; 0.8.4 – newer contracts
-# Vyper 0.2.8        – BeanstalkFarms benchmark
+# Note: vyper==0.2.8 is omitted – it only supports Python 3.6-3.8 and is
+# incompatible with Python 3.10. BeanstalkFarms traces are pre-cached in the
+# upstream Docker image so Vyper is not needed to reproduce results.
 RUN pip install --no-cache-dir --upgrade pip \
     && python3.10 -m pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir solc-select \
     && solc-select install 0.5.17 \
     && solc-select install 0.5.18 \
     && solc-select install 0.8.4 \
-    && solc-select use 0.8.4 \
-    && pip install --no-cache-dir "vyper==0.2.8"
+    && solc-select use 0.8.4
 
 # ── offline smoke test ─────────────────────────────────────────────────────────
 # Verifies only the packages actually listed in requirements.txt are importable.
@@ -61,4 +64,3 @@ sys.exit(1) if missing else print('Smoke test passed.')"
 # Example: docker run ... python3.10 main.py AC
 
 CMD ["python3.10", "-c", "print('Trace2Inv ready. Usage: python3.10 main.py [AC|TL|GC|RE|SS|OR|DF|MF]')"]
-
