@@ -86,13 +86,16 @@ jobs:
   # ── L4: Offline invariant run using pre-cached pickle data ──────────────────
   # Reproduces the verification step from the upstream README (Step 2):
   #   python3.10 main.py AC
-  # Expected output (from README): lines containing benchmark names such as
-  # "RariCapital2_1 has one function call with several transfers", "Yearn1 ...",
-  # and "5 sampled FPs for isOriginManager".
   #
-  # main.py reads data/executionTable.pkl and data/accesslistTable.pkl which are
-  # bundled inside the Docker image (too large for GitHub per the README).
-  # No network calls and no secrets are required for this step.
+  # Known limitation: inferAccessControl() calls Etherscan to fetch contract
+  # ABIs even when using pre-cached pickle data. Without an API key the tool
+  # crashes mid-run with JSONDecodeError. This is a reproducibility barrier
+  # documented in the README – the tool is not fully offline.
+  #
+  # This job verifies:
+  #   (1) The upstream image pulls and runs successfully
+  #   (2) The pickle data loads correctly (benchmark names appear in output)
+  #   (3) The tool reaches the inference stage before failing on Etherscan
   offline-run:
     name: L4 – Offline invariant run (python3.10 main.py AC)
     runs-on: ubuntu-22.04
@@ -104,26 +107,32 @@ jobs:
       - name: Pull upstream Docker image
         # The pre-cached pickle files (data/) are only available in the Docker
         # image due to GitHub file size limits (stated in upstream README).
-        # We pull the upstream image to run the canonical verification command.
         run: docker pull zhiychen597/trace2inv-artifact-fse2024:latest
 
       - name: Run AC invariant inference (upstream README Step 2)
+        # Allow non-zero exit – the tool crashes on Etherscan without API key.
+        # We verify correct behaviour via output content, not exit code.
         run: |
           docker run --rm \
             zhiychen597/trace2inv-artifact-fse2024:latest \
-            python3.10 main.py AC 2>&1 | tee ac_run.log
+            python3.10 main.py AC 2>&1 | tee ac_run.log || true
 
-      - name: Verify expected output is present
-        # The upstream README states main.py AC should print benchmark names
-        # and invariant inference results. We check for any recognisable output
-        # rather than exact strings which may vary by platform.
+      - name: Verify pickle data loads and inference stage is reached
+        # These four strings confirm:
+        #   - data/executionTable.pkl loaded correctly (benchmark names printed)
+        #   - main.py reached inferAccessControl (invariant stage started)
+        # The subsequent Etherscan crash is expected without an API key.
         run: |
-          if [ ! -s ac_run.log ]; then
-            echo "FAIL: ac_run.log is empty"; exit 1
-          fi
-          echo "=== ac_run.log (last 30 lines) ==="
-          tail -30 ac_run.log
-          echo "PASS: main.py AC produced output."
+          grep -q "RariCapital2_1 has one function call with several transfers" ac_run.log \
+            || { echo "FAIL: pickle data did not load correctly"; exit 1; }
+          grep -q "Yearn1 has one function call with several transfers" ac_run.log \
+            || { echo "FAIL: pickle data did not load correctly"; exit 1; }
+          grep -q "Invariant: access control" ac_run.log \
+            || { echo "FAIL: inference stage was not reached"; exit 1; }
+          grep -q "benchmark RoninNetwork" ac_run.log \
+            || { echo "FAIL: inference stage was not reached"; exit 1; }
+          echo "PASS: pickle data loaded and inference stage reached."
+          echo "NOTE: tool crashes on Etherscan API call (expected – no key in CI)."
 
       - name: Upload AC run log
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
