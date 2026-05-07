@@ -60,7 +60,7 @@ class CrawlEtherscan:
         receiptJson = load_object(filename)
         if receiptJson is not None and not isinstance(receiptJson, str):
             return receiptJson
-        GETrequest = 'https://api.etherscan.io/api?module=contract'\
+        GETrequest = 'https://api.etherscan.io/api?chainid=1&module=contract'\
             '&action=getsourcecode'\
             '&address={}'\
             '&apikey={}'.format(contractAddress, self.getEtherScanAPIkey())
@@ -73,7 +73,7 @@ class CrawlEtherscan:
         """Given a contract address, return the ABI"""
         if contractAddress in self.ABIMap:
             return self.ABIMap[contractAddress]
-        GETrequest = 'https://api.etherscan.io/api?module=contract'\
+        GETrequest = 'https://api.etherscan.io/api?chainid=1&module=contract'\
             '&action=getabi'\
             '&address={}'\
             '&apikey={}'.format(contractAddress, self.getEtherScanAPIkey())
@@ -91,7 +91,7 @@ class CrawlEtherscan:
         if contractAddress in self.VerifyMap:
             return self.VerifyMap[contractAddress]
         
-        GETrequest = 'https://api.etherscan.io/api?module=contract'\
+        GETrequest = 'https://api.etherscan.io/api?chainid=1&module=contract'\
             '&action=getabi'\
             '&address={}'\
             '&apikey={}'.format(contractAddress, self.getEtherScanAPIkey())
@@ -144,7 +144,7 @@ class CrawlEtherscan:
 
     def Contract2Bytecode(self, contractAddress: str) -> str:
         """Given a contract address, return the bytecode"""
-        GETrequest = 'https://api.etherscan.io/api?module=proxy'\
+        GETrequest = 'https://api.etherscan.io/api?chainid=1&module=proxy'\
             '&action=eth_getCode'\
             '&address={}'\
             '&tag=latest'\
@@ -162,7 +162,7 @@ class CrawlEtherscan:
         if self.cacheDeployTx is not None and contractAddress in self.cacheDeployTx:
             return self.cacheDeployTx[contractAddress]
 
-        GETrequest = 'https://api.etherscan.io/api?module=contract'\
+        GETrequest = 'https://api.etherscan.io/api?chainid=1&module=contract'\
             '&action=getcontractcreation'\
             '&contractaddresses={}'\
             '&apikey={}'.format(contractAddress, self.getEtherScanAPIkey())
@@ -245,7 +245,7 @@ class CrawlEtherscan:
         """Given a block number and a block index, return the tx hash"""
         block_hex = hex(block)
         block_index = hex(blockIndex)
-        GETrequest = 'https://api.etherscan.io/api?module=proxy'\
+        GETrequest = 'https://api.etherscan.io/api?chainid=1&module=proxy'\
             '&action=eth_getTransactionByBlockNumberAndIndex'\
             '&tag={}'\
             '&index={}'\

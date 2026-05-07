@@ -1,7 +1,7 @@
 import os
 import sys
 from crawlPackage.crawlEtherscan import CrawlEtherscan
-from crawlPackage.crawlQuicknode import CrawlQuickNode
+from crawlPackage.crawlRPC import CrawlRPC
 from crawlPackage.crawlTrueBlocks import CrawlTrueBlocks
 import subprocess
 import json 
@@ -18,7 +18,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 class Crawler:
     def __init__(self) -> None:
         self.crawlEtherscan = CrawlEtherscan()
-        self.crawlQuicknode = CrawlQuickNode()
+        self.crawlRPC = CrawlRPC()
         self.crawlTrueBlocks = CrawlTrueBlocks()
 
     def Contract2TxHistoryBlockIndex(self, contractAddress: str, endBlock: int = 999999999999999, maxTxs: int = None) -> list:
@@ -62,7 +62,7 @@ class Crawler:
             Txs = None
             while Txs == None:
                 try:
-                    Txs = self.crawlQuicknode.batch_BlockIndex2Tx(HistoryBlockIndex[start: end])
+                    Txs = self.crawlRPC.batch_BlockIndex2Tx(HistoryBlockIndex[start: end])
                 except Exception as e:
                     time.sleep(1)
                     pass
@@ -101,15 +101,15 @@ class Crawler:
 
     def Tx2Block(self, Tx: str) -> int:
         """Given a tx hash, return its block number"""
-        return self.crawlQuicknode.Tx2Block(Tx)
+        return self.crawlRPC.Tx2Block(Tx)
     
     def BlockIndex2Tx(self, block: int, blockIndex: int) -> str:
         """Given a block number and a block index, return the tx hash"""
-        return self.crawlQuicknode.BlockIndex2Tx(block, blockIndex)
+        return self.crawlRPC.BlockIndex2Tx(block, blockIndex)
 
     def BlockIndex2TxGasUsed(self, block: int, blockIndex: int) -> int:
         """Given a block number and a block index, return the tx gas used"""
-        return self.crawlQuicknode.BlockIndex2TxGasUsed(block, blockIndex)
+        return self.crawlRPC.BlockIndex2TxGasUsed(block, blockIndex)
 
 
 
